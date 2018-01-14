@@ -1,4 +1,5 @@
-﻿using IdentityServer4.Models;
+﻿using IdentityServer4;
+using IdentityServer4.Models;
 using IdentityServer4.Test;
 using System;
 using System.Collections.Generic;
@@ -65,8 +66,34 @@ namespace AuthIDPserver
         //3 clients
         public static IEnumerable<Client> GetClients()
         {
-            //ret empty list for know
-            return new List<Client>();
+            //ret clients are actual clientside apps not people
+            return new List<Client>
+            {
+                new Client
+                {
+                    ClientName="MVC client",
+                    ClientId="MacaMVC",
+                    AllowedGrantTypes=GrantTypes.Hybrid,//use implict or other in future
+                    RedirectUris= new List<string>()
+                    {
+                        //THIS IS REDIRECT URL:from the ssl debug from maca mvc
+                        "https://localhost:44321/signin-oidc"
+                    },
+                    AllowedScopes =//gets scopes like profile data ect
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile
+                    },
+
+                    ClientSecrets =//needed for a client
+                    {
+                        new Secret("secret".Sha256())
+                    }
+
+                    
+                    
+                }
+            };
         }
 
     }
