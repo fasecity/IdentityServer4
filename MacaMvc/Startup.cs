@@ -27,24 +27,35 @@ namespace MacaMvc
          
             services.AddAuthentication(options =>
             {
-                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+                //this works
+                options.DefaultScheme = "Cookies";
+                options.DefaultChallengeScheme = "oidc";
             })
-                .AddCookie()
-                .AddOpenIdConnect(options =>
+                .AddCookie("Cookies")      //auth scheme goes here add cookies and oicc
+                .AddOpenIdConnect("oidc", options =>
                     {
-                        // template from :
-                        https://docs.microsoft.com/en-us/aspnet/core/migration/1x-to-2x/identity-2x
-                     
+                        options.SignInScheme = "Cookies";
                         options.Authority = "https://localhost:44365/";
                         options.RequireHttpsMetadata = true;
                         options.ClientId = "MacaMVC";
                         options.Scope.Add("openid");
                         options.Scope.Add("profile");
-                        options.ResponseType = "code id_token";
-                        options.SignInScheme = "Cookies";
+                        options.ResponseType = "code id_token";                      
                         options.SaveTokens = true;
                         options.ClientSecret = "secret";
+                        options.GetClaimsFromUserInfoEndpoint = true;//makes sure we get aditional userInfo
+
+
+                        //signout call redirect:@defaultz
+                        // options.SignedOutCallbackPath = new Microsoft
+                        //.AspNetCore.Http.PathString("https://localhost:44321/signout-callback-oidc");
+
+                        // options.CallbackPath = new Microsoft // - maybe use for android
+                        //.AspNetCore.Http.PathString(...)// can make new path to login instead of default
+                       
+                        // template from :
+                        // https://docs.microsoft.com/en-us/aspnet/core/migration/1x-to-2x/identity-2x
+
 
                     });
 

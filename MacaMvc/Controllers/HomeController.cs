@@ -51,6 +51,18 @@ namespace MacaMvc.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
+        /// <summary>
+        /// THIS LOGS OUT OF BOTH IPD AND mvc app
+        /// </summary>
+        /// <returns></returns>
+        public async Task Logout()
+        {
+            //only logs out of client not IDP
+            await AuthenticationHttpContextExtensions.SignOutAsync(HttpContext, "Cookies");
+            await AuthenticationHttpContextExtensions.SignOutAsync(HttpContext, "oidc");
+
+
+        }
 
     }
 }

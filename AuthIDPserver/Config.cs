@@ -88,7 +88,19 @@ namespace AuthIDPserver
                     ClientSecrets =//needed for a client
                     {
                         new Secret("secret".Sha256())
-                    }
+                    },
+
+                    //signout call redirect:@defaultz-- 
+                    PostLogoutRedirectUris =
+                    {
+                        "https://localhost:44321/signout-callback-oidc"
+                    },
+
+
+                    //cool website to check token:https://jwt.io/
+                    //  AlwaysIncludeUserClaimsInIdToken = true 
+                    //make sure name 
+                    //and profile info is passed with claim
 
                     
                     
