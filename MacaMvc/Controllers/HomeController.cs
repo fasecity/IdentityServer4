@@ -8,6 +8,7 @@ using MacaMvc.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication;
+using IdentityModel.Client;
 
 namespace MacaMvc.Controllers
 {
@@ -39,11 +40,42 @@ namespace MacaMvc.Controllers
             return View();
         }
 
-        public IActionResult Contact()
+        /// <summary>
+        ///  INSTALL IDENTITYMODEL NUGET PACKAGE
+        ///  this is a helper class.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IActionResult> Contact()
         {
-            ViewData["Message"] = "Your contact page.";
+            //when getting info pass in authority if IDP
+            var discoveryClient = new DiscoveryClient("https://localhost:44365/");
+          
+            //gets meta data 
+            var metaDataResponse = await discoveryClient.GetAsync();
 
-            return View();
+            //get userInfo endpoint  pass in meta data
+            var userInfoClient = new UserInfoClient(metaDataResponse.UserInfoEndpoint);
+
+            //need an access token to call this endpoint above
+            var accessToken = await AuthenticationHttpContextExtensions
+                .GetTokenAsync(HttpContext, OpenIdConnectParameterNames.AccessToken);
+
+            //call endpoint pass in access token
+            var response = await userInfoClient.GetAsync(accessToken);
+
+            //throw an error exeption if any errors:
+            if (response.IsError)
+            {
+                throw new Exception("error on user endpoint",response.Exception);
+               
+            }
+
+            // response object has a list of claims that are returned from the user info endpoint
+            //match scopes that are in the access token-- if null its gonna be null
+            var address = response.Claims.FirstOrDefault(x => x.Type == "address")?.Value;
+
+            //return view and pass in new orderview frame model with address in ctor
+            return View(new OrderViewFrameModel(address));
         }
 
         public IActionResult Error()

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,6 +11,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 
 namespace MacaMvc
 {
@@ -21,40 +25,88 @@ namespace MacaMvc
 
         public IConfiguration Configuration { get; }
 
+       
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-         
+           
+          //  JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+            
+
             services.AddAuthentication(options =>
             {
+           
                 //this works
                 options.DefaultScheme = "Cookies";
                 options.DefaultChallengeScheme = "oidc";
+
             })
-                .AddCookie("Cookies")      //auth scheme goes here add cookies and oicc
+ 
+                //add cookies
+                .AddCookie("Cookies")
+
+                //auth scheme goes here and oicc
                 .AddOpenIdConnect("oidc", options =>
                     {
                         options.SignInScheme = "Cookies";
                         options.Authority = "https://localhost:44365/";
                         options.RequireHttpsMetadata = true;
                         options.ClientId = "MacaMVC";
+
                         options.Scope.Add("openid");
                         options.Scope.Add("profile");
+                        options.Scope.Add("address");
+
                         options.ResponseType = "code id_token";                      
                         options.SaveTokens = true;
                         options.ClientSecret = "secret";
                         options.GetClaimsFromUserInfoEndpoint = true;//makes sure we get aditional userInfo
 
+                        //events not working
+                        options.Events = new OpenIdConnectEvents()
+                        {
 
+                            OnTicketReceived = ticketReceivedContext =>
+                            {
+                                return Task.CompletedTask;
+                            },
+
+                            OnTokenValidated = tokenValidatedContext =>
+                            {
+                                var identity = tokenValidatedContext.Principal.Identity
+                                    as ClaimsIdentity;
+
+                                // var targetClaims = identity.Claims.Where(z => new[] { "subscriptionlevel", "country", "role", "sub" }.Contains(z.Type));
+                                var targetClaims = identity.Claims.Where(z => new[] { "sub" }.Contains(z.Type));
+
+                                var newClaimsIdentity = new ClaimsIdentity(
+                                  targetClaims,
+                                  identity.AuthenticationType,
+                                  "given_name",
+                                  "role");
+
+                                tokenValidatedContext.Principal =
+                                    new ClaimsPrincipal(newClaimsIdentity);
+
+                                return Task.CompletedTask;
+                            },
+
+                            OnUserInformationReceived = userInformationReceivedContext =>
+                            {
+                               userInformationReceivedContext.User.Remove("address");
+                                return Task.FromResult(0);
+                            }
+
+                        };
+
+                   
                         //signout call redirect:@defaultz
                         // options.SignedOutCallbackPath = new Microsoft
                         //.AspNetCore.Http.PathString("https://localhost:44321/signout-callback-oidc");
 
                         // options.CallbackPath = new Microsoft // - maybe use for android
                         //.AspNetCore.Http.PathString(...)// can make new path to login instead of default
-                       
-                        // template from :
-                        // https://docs.microsoft.com/en-us/aspnet/core/migration/1x-to-2x/identity-2x
 
 
                     });
@@ -75,7 +127,9 @@ namespace MacaMvc
                 app.UseExceptionHandler("/Home/Error");
             }
 
-            
+            //clears default claim type
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
             app.UseAuthentication();
 
             app.UseStaticFiles();
@@ -90,7 +144,38 @@ namespace MacaMvc
     }
 }
 
-//----------------------Better Modern example using FB-------------------------------------         
+//----------------------Notes-------------------------------------    
+// notes:       
+//options.ClaimActions.Clear();//(check notes) so weird  fuck 
+// options.ClaimActions.Clear();//from stackoverflow
+//https://stackoverflow.com/questions/46038509/unable-to-retrieve-claims-in-net-core-2-0
+//more bs:
+//events not working
+//options.Events = new OpenIdConnectEvents()
+//{
+//    OnUserInformationReceived = (context) =>
+//    {
+//        ClaimsIdentity claimsId = context.Principal.Identity as ClaimsIdentity;
+
+//        var subjectClaim = claimsId.Claims.FirstOrDefault(x => x.Type == "sub");
+
+//        var i = new ClaimsIdentity(context.Principal.Identity);
+
+//        i.Name ="given name"
+
+//        return Task.FromResult(0);
+//    }
+//};
+//add default mapper to claims token doesnt fit
+// JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();// didnt work
+
+// // template from :
+// https://docs.microsoft.com/en-us/aspnet/core/migration/1x-to-2x/identity-2x
+//-----------------------------------------------------------------
+//notes end
+
+
+//----------------------Better Modern example using FB-------------------------------------    
 //  services.AddIdentity<ApplicationUser, IdentityRole>()   
 //.AddEntityFrameworkStores<ApplicationDbContext>();
 
