@@ -30,9 +30,19 @@ namespace MacaMvc
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-           
-          //  JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-            
+            // Add framework services.!!!!ALWAYS ADD AT THE FUCKING TOP !!!!!!
+            services.AddMvc();
+
+            //new policy makes [Authorize] availible by claims
+            services.AddAuthorization((options) => {
+                options.AddPolicy("CanOrderFrame", policybuilder =>
+                {               
+                    policybuilder.RequireAuthenticatedUser();
+                    policybuilder.RequireClaim("role", "PayingUser");
+
+                });
+            });
+
 
             services.AddAuthentication(options =>
             {
@@ -42,9 +52,11 @@ namespace MacaMvc
                 options.DefaultChallengeScheme = "oidc";
 
             })
- 
-                //add cookies
-                .AddCookie("Cookies")
+
+                 //add cookies added the option to denied path
+                 .AddCookie("Cookies", (options) => {
+                     options.AccessDeniedPath = "/Authorization/AccessDenied";
+                 })
 
                 //auth scheme goes here and oicc
                 .AddOpenIdConnect("oidc", options =>
@@ -57,6 +69,7 @@ namespace MacaMvc
                         options.Scope.Add("openid");
                         options.Scope.Add("profile");
                         options.Scope.Add("address");
+                        options.Scope.Add("roles");//--- add roles scope
 
                         options.ResponseType = "code id_token";                      
                         options.SaveTokens = true;
@@ -77,14 +90,13 @@ namespace MacaMvc
                                 var identity = tokenValidatedContext.Principal.Identity
                                     as ClaimsIdentity;
 
-                                // var targetClaims = identity.Claims.Where(z => new[] { "subscriptionlevel", "country", "role", "sub" }.Contains(z.Type));
-                                var targetClaims = identity.Claims.Where(z => new[] { "sub" }.Contains(z.Type));
+                                var targetClaims = identity.Claims.Where(z => new[] { "sub","role" }.Contains(z.Type));
 
-                                var newClaimsIdentity = new ClaimsIdentity(
-                                  targetClaims,
-                                  identity.AuthenticationType,
-                                  "given_name",
-                                  "role");
+                            var newClaimsIdentity = new ClaimsIdentity(
+                              targetClaims,
+                              identity.AuthenticationType,
+                              "given_name",
+                              "role");
 
                                 tokenValidatedContext.Principal =
                                     new ClaimsPrincipal(newClaimsIdentity);
@@ -100,18 +112,11 @@ namespace MacaMvc
 
                         };
 
-                   
-                        //signout call redirect:@defaultz
-                        // options.SignedOutCallbackPath = new Microsoft
-                        //.AspNetCore.Http.PathString("https://localhost:44321/signout-callback-oidc");
-
-                        // options.CallbackPath = new Microsoft // - maybe use for android
-                        //.AspNetCore.Http.PathString(...)// can make new path to login instead of default
-
-
+                
                     });
 
-            services.AddMvc();
+          
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -129,9 +134,8 @@ namespace MacaMvc
 
             //clears default claim type
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-
+            JwtSecurityTokenHandler.DefaultInboundClaimFilter.Clear();
             app.UseAuthentication();
-
             app.UseStaticFiles();
 
             app.UseMvc(routes =>
@@ -146,28 +150,15 @@ namespace MacaMvc
 
 //----------------------Notes-------------------------------------    
 // notes:       
-//options.ClaimActions.Clear();//(check notes) so weird  fuck 
-// options.ClaimActions.Clear();//from stackoverflow
-//https://stackoverflow.com/questions/46038509/unable-to-retrieve-claims-in-net-core-2-0
-//more bs:
-//events not working
-//options.Events = new OpenIdConnectEvents()
-//{
-//    OnUserInformationReceived = (context) =>
-//    {
-//        ClaimsIdentity claimsId = context.Principal.Identity as ClaimsIdentity;
+//in service
+//----Extras:
+//signout call redirect:@defaultz
+// options.SignedOutCallbackPath = new Microsoft
+//.AspNetCore.Http.PathString("https://localhost:44321/signout-callback-oidc");
 
-//        var subjectClaim = claimsId.Claims.FirstOrDefault(x => x.Type == "sub");
+// options.CallbackPath = new Microsoft // - maybe use for android
+//.AspNetCore.Http.PathString(...)// can make new path to login instead of default
 
-//        var i = new ClaimsIdentity(context.Principal.Identity);
-
-//        i.Name ="given name"
-
-//        return Task.FromResult(0);
-//    }
-//};
-//add default mapper to claims token doesnt fit
-// JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();// didnt work
 
 // // template from :
 // https://docs.microsoft.com/en-us/aspnet/core/migration/1x-to-2x/identity-2x

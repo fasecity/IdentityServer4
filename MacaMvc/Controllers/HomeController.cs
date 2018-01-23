@@ -9,17 +9,20 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.AspNetCore.Authentication;
 using IdentityModel.Client;
+using System.Security.Claims;
 
 namespace MacaMvc.Controllers
 {
     [Authorize]//kicks in auth frm middleware
     public class HomeController : Controller
     {
+
+
         public IActionResult Index()
         {
             return View();
         }
-
+        [Authorize(Roles = "PayingUser")]
         public async Task<IActionResult> About()
         {
             //get saved token
@@ -28,13 +31,14 @@ namespace MacaMvc.Controllers
 
             //write it out
             Debug.WriteLine("Iden token " + xtoken);
-
-
             //writeout Claims
             foreach (var claim in User.Claims)
             {
                 Debug.WriteLine("claim type: " + claim.Type + "-- Claim Value " + claim.Value);
+
+            
             }
+
             ViewData["Message"] = xtoken;
 
             return View();
@@ -43,8 +47,10 @@ namespace MacaMvc.Controllers
         /// <summary>
         ///  INSTALL IDENTITYMODEL NUGET PACKAGE
         ///  this is a helper class.
+        ///[Authorize(Policy = "CanOrderFrame")]  works too 
         /// </summary>
         /// <returns></returns>
+        [Authorize(Roles = "PayingUser")]
         public async Task<IActionResult> Contact()
         {
             //when getting info pass in authority if IDP

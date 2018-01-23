@@ -11,27 +11,33 @@ namespace AuthIDPserver
 {
     public static class Config
     {
-        //1
+        //1 this is a test class
         public static List<TestUser> GetUsers()
         {
             //returns users
+            //add role based schema ex.free user
             return new List<TestUser>
             {
+               
                 new TestUser
                 {
                     SubjectId="1001",
                     Username="Frank",
                     Password="password",
-
+                    
                     Claims= new List<Claim>
                     {
                         new Claim("given_name","Frank"),
                         new Claim("family_name","Underwood"),
-                        new Claim("address","1 addy rd unit 233")
+                        new Claim("address","1 addy rd unit 233"),                
+                        new Claim("role", "FreeUser")
+
+
                     }
 
                 },//user ends
 
+                //add role based schema ex.free user
                  new TestUser
                 {
                     SubjectId="1002",
@@ -42,7 +48,9 @@ namespace AuthIDPserver
                     {
                         new Claim("given_name","Claire"),
                         new Claim("family_name","Underwood"),
-                        new Claim("address","1 fuy guy ave")
+                        new Claim("address","1 fuy guy ave"),
+                        new Claim("role", "PayingUser")
+
 
                     }
 
@@ -51,18 +59,21 @@ namespace AuthIDPserver
 
         }
 
-        //2 not sure scope           
+        //2 not sure scope
+        //returns this 
+        //maps to subjectId ensures its ok
+        //roles isnt a standard scope add in ctor of IR: 
+        //name of reasorce //display name// List of custom claim type role   
         public static IEnumerable<IdentityResource> GetIdentityResources()
         {
-            //returns this 
-            //maps to subjectId ensures its ok
+            
             return new List<IdentityResource> {
 
                 new IdentityResources.OpenId(),
-
                 new IdentityResources.Profile(),
-                new IdentityResources.Address()
-
+                new IdentityResources.Address(),
+                new IdentityResource("roles","Roles",new List<string>(){"role"})
+              
 
             };
         }
@@ -83,11 +94,14 @@ namespace AuthIDPserver
                         //THIS IS REDIRECT URL:from the ssl debug from maca mvc
                         "https://localhost:44321/signin-oidc"
                     },
-                    AllowedScopes =//gets scopes like profile data ect
+                    AllowedScopes =//gets scopes like profile data ect/2/adding roles scope
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
-                        IdentityServerConstants.StandardScopes.Address
+                        IdentityServerConstants.StandardScopes.Address,
+                       "roles"
+
+
 
                     },
 
@@ -102,11 +116,10 @@ namespace AuthIDPserver
                         "https://localhost:44321/signout-callback-oidc"
                     },
 
-
-                    //cool website to check token:https://jwt.io/
-                    //  AlwaysIncludeUserClaimsInIdToken = true 
-                    //make sure name 
-                    //and profile info is passed with claim
+                       //make sure this is true or you 
+                       //-you know waste time getting the claims
+                      AlwaysIncludeUserClaimsInIdToken = true 
+               
 
                     
                     

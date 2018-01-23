@@ -52,6 +52,7 @@ namespace AuthIDPserver
 
             //call iden4
             app.UseIdentityServer();
+            app.UseAuthentication();// just added 1-22 18
             app.UseStaticFiles();
             app.UseMvcWithDefaultRoute();
             app.UseMvc();
