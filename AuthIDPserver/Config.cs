@@ -78,10 +78,31 @@ namespace AuthIDPserver
             };
         }
 
+
+        //adding API RESOURCE --------------------------------------//
+        /// <summary>
+        /// this reps resource scopes
+        /// </summary>
+        /// <returns></returns>
+        public static IEnumerable<ApiResource> GetApiResources()
+        {
+            return new[] {
+                new ApiResource("apiclient", "api client", new[] { "role" })
+                {
+                    // ApiSecrets = new[] { new Secret("apisecret".Sha256()) } }
+
+                    // ApiSecrets ={ new Secret("apisecret".Sha256()) } 
+                }
+            };
+        }
+
+
+
         //3 clients
         public static IEnumerable<Client> GetClients()
         {
             //ret clients are actual clientside apps not people
+            
             return new List<Client>
             {
                 new Client
@@ -99,7 +120,8 @@ namespace AuthIDPserver
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
                         IdentityServerConstants.StandardScopes.Address,
-                       "roles"
+                       "roles",
+                       "apiclient" //rem to add api res to startup
 
 
 
@@ -124,6 +146,9 @@ namespace AuthIDPserver
                     
                     
                 }
+
+               
+
             };
         }
 

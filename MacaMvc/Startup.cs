@@ -4,11 +4,13 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using MacaMvc.IHttpHelpers;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -44,6 +46,20 @@ namespace MacaMvc
             });
 
 
+            // register an IHttpContextAccessor so we can access the current
+            // HttpContext in services by injecting it
+            //---we use to pull out the token
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            // register an IPayloadHttpClient-- make sure interface is implemented
+            services.AddScoped<IHttpPayloadClient, HttpPayloadClient>();
+
+
+
+
+
+
+
             services.AddAuthentication(options =>
             {
            
@@ -70,6 +86,8 @@ namespace MacaMvc
                         options.Scope.Add("profile");
                         options.Scope.Add("address");
                         options.Scope.Add("roles");//--- add roles scope
+                        options.Scope.Add("apiclient");//---add api client fuckkkkkkkkkk
+                       
 
                         options.ResponseType = "code id_token";                      
                         options.SaveTokens = true;
@@ -114,8 +132,6 @@ namespace MacaMvc
 
                 
                     });
-
-          
 
         }
 

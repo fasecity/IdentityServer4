@@ -3,26 +3,27 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "https://localhost:44365/",
-      "sslPort": 44365
+      "applicationUrl": "https://localhost:44370/",
+      "sslPort": 44370
     }
   },
   "profiles": {
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
+      "launchUrl": "https://localhost:44370/api/Paylo/yo",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "AuthIDPserver": {
+    "APiclient": {
       "commandName": "Project",
       "launchBrowser": true,
       "launchUrl": "api/values",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:55009/"
+      "applicationUrl": "http://localhost:56928/"
     }
   }
 }

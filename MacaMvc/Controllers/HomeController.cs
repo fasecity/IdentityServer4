@@ -102,5 +102,12 @@ namespace MacaMvc.Controllers
 
         }
 
+        [Authorize(Roles = "PayingUser")]
+        public IActionResult Apir()
+        {
+            return View();
+        }
+
+        //https://localhost:44370/ apires
     }
 }
